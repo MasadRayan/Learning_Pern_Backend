@@ -8,6 +8,11 @@ app.use(cors())
 
 
 app.post("/auth/sign-up",  (req, res) => {
+  if (req.body.firstName.length <= 2) {
+    return res.status(400).json({
+      error: "First name must be at least 3 characters long"
+    })
+  }
   res.json({
     user: req.body
   })

@@ -8,10 +8,10 @@ import { prisma } from "./prisma.js";
 const app = express();
 const port = 3000;
 
-app.use(express.json()); 
+app.use(express.json());
 app.use(cors());
 
-app.post("/auth/sign-up", async(req, res) => {
+app.post("/auth/sign-up", async (req, res) => {
   const userCreateSchema = z.object({
     firstName: z.string().min(3),
     lastName: z.string().min(3),
@@ -22,7 +22,9 @@ app.post("/auth/sign-up", async(req, res) => {
   const { success, data, error } = userCreateSchema.safeParse(req.body);
 
   if (!success) {
-    return res.status(400).json({ message: "Validation failed", data: z.flattenError(error) });
+    return res
+      .status(400)
+      .json({ message: "Validation failed", data: z.flattenError(error) });
   }
 
   const passwordHash = await bcrypt.hash(data.password, 10);
@@ -31,69 +33,76 @@ app.post("/auth/sign-up", async(req, res) => {
     firstName: data.firstName,
     lastName: data.lastName,
     email: data.email,
-    passwordHash
-  }
+    passwordHash,
+  };
 
-  // save the user info to the database 
+  // save the user info to the database
   const createdUser = await prisma.user.create({
-    data: user
-  })
+    data: user,
+  });
 
   res.json({
+    status: "success",
     message: "User created successfully",
-    data : createdUser
+    data: { user: createdUser },
   });
 });
 
-app.get("/users", async(req, res) => {
-  const users  = await prisma.user.findMany({
+app.get("/users", async (req, res) => {
+  const users = await prisma.user.findMany({
     omit: {
-      passwordHash: true
+      passwordHash: true,
     },
     orderBy: {
-      createdAt: "desc"
-    }
-  })  
+      createdAt: "desc",
+    },
+  });
   res.json({
+    status: "success",
     message: "Users fetched successfully",
-    data : users
-  })
-})
+    data: { users },
+  });
+});
 
-app.patch("/users/:id", async(req, res) => {
+app.patch("/users/:id", async (req, res) => {
   const userId = req.params.id;
 
   const userUpdateSchema = z.object({
     firstName: z.string().min(3).optional(),
     lastName: z.string().min(3).optional(),
     email: z.email().optional(),
-  })
+  });
 
-  const {success, data, error} = userUpdateSchema.safeParse(req.body);
+  const { success, data, error } = userUpdateSchema.safeParse(req.body);
 
   if (!success) {
-    return res.status(400).json({message: "Validation failed", data: z.flattenError(error)});
+    return res
+      .status(400)
+      .json({ message: "Validation failed", data: z.flattenError(error) });
   }
 
   const user = {
     firstName: data.firstName,
     lastName: data.lastName,
     email: data.email,
-  }
+  };
 
   const updateUser = await prisma.user.update({
     where: {
-      id: userId
+      id: userId,
     },
     data: user,
     omit: {
       passwordHash: true,
-    }
+    },
   });
 
-  res.json({message: "User updated successfully" , data: updateUser});
-   
-})
+  res.json({
+    status: "success",
+    message: "User updated successfully",
+    data: { user: updateUser },
+  });
+});
 
 app.get("/", async (req, res) => {
   res.send("Hello World!");

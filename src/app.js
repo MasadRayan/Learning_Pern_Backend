@@ -3,6 +3,8 @@ import cors from "cors";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { fi } from "zod/locales";
+import dotenv from "dotenv";
+import { prisma } from "../prisma.js";
 const app = express();
 const port = 3000;
 

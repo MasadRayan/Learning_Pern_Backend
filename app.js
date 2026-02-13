@@ -6,6 +6,14 @@ const port = 3000
 app.use(express.json())
 app.use(cors())
 
+
+app.post("/auth/sign-up",  (req, res) => {
+  res.json({
+    user: req.body
+  })
+})
+
+
 app.get("/", async (req, res) => {
   res.send("Hello World!");
 })

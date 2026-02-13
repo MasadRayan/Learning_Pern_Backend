@@ -2,9 +2,9 @@ import express from "express";
 import cors from "cors";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { fi, id } from "zod/locales";
 import dotenv from "dotenv";
 import { prisma } from "./prisma.js";
+import jwt from "jsonwebtoken";
 const app = express();
 const port = 3000;
 
@@ -48,6 +48,58 @@ app.post("/auth/sign-up", async (req, res) => {
   });
 });
 
+app.post("/auth/sign-in", async (req, res) => {
+  const userSignInSchema = z.object({
+    email: z.email(),
+    password: z.string().min(8),
+  });
+
+  const { success, data, error } = userSignInSchema.safeParse(req.body);
+
+  if (!success) {
+    return res.status(400).json({
+      status: "error",
+      message: "Validation failed",
+      data: z.flattenError(error),
+    });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: data.email,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      status: "error",
+      message: "User not found",
+    });
+  }
+
+  const isPasswordValid = await bcrypt.compare(
+    data.password,
+    user.passwordHash,
+  );
+
+  if (!isPasswordValid) {
+    return res.status(401).json({
+      status: "error",
+      message: "Invalid password",
+    });
+  }
+
+  const secretkey = process.env.JWT_SECRET;
+
+  const accessToken = jwt.sign({ sub: user.id }, secretkey, { expiresIn: "7d" });
+
+  res.json({
+    status: "success",
+    message: "User signed in successfully",
+    data: { accessToken },
+  });
+});
+
 app.get("/users", async (req, res) => {
   const users = await prisma.user.findMany({
     omit: {
@@ -71,7 +123,7 @@ app.get("/users/:id", async (req, res) => {
     id: z.uuid(),
   });
 
-  const {success, error } = getUserSchema.safeParse({
+  const { success, error } = getUserSchema.safeParse({
     id: userId,
   });
 
@@ -89,8 +141,8 @@ app.get("/users/:id", async (req, res) => {
     },
     omit: {
       passwordHash: true,
-    }
-  })
+    },
+  });
 
   if (!user) {
     return res.status(404).json({
@@ -161,14 +213,14 @@ app.patch("/users/:id", async (req, res) => {
 app.delete("/users/:id", async (req, res) => {
   try {
     const userId = req.params.id;
-    
+
     const userdeleteSchema = z.object({
       id: z.uuid(),
-    })
+    });
 
     const { success, error } = userdeleteSchema.safeParse({
       id: userId,
-    })
+    });
 
     if (!success) {
       return res.status(400).json({
@@ -181,7 +233,7 @@ app.delete("/users/:id", async (req, res) => {
     const user = await prisma.user.findUnique({
       where: {
         id: userId,
-      }
+      },
     });
 
     if (!user) {
@@ -196,21 +248,18 @@ app.delete("/users/:id", async (req, res) => {
       where: {
         id: userId,
       },
-      omit : {
+      omit: {
         passwordHash: true,
-      }
-    })
+      },
+    });
 
     res.json({
       status: "success",
       message: "User deleted successfully",
       data: { user: deleteUser },
     });
-
-  } catch (error) {
-    
-  }
-})
+  } catch (error) {}
+});
 
 app.get("/", async (req, res) => {
   res.send("Hello World!");

@@ -1,8 +1,8 @@
-const express = require("express");
-const cors = require("cors");
-const { z } = require("zod");
-const bcrypt = require("bcrypt");
-const { fi } = require("zod/locales");
+import express from "express";
+import cors from "cors";
+import { z } from "zod";
+import bcrypt from "bcrypt";
+import { fi } from "zod/locales";
 const app = express();
 const port = 3000;
 

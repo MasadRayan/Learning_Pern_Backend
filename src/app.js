@@ -35,9 +35,12 @@ app.post("/auth/sign-up", async(req, res) => {
   }
 
   // save the user info to the database 
+  const createdUser = await prisma.user.create({
+    data: user
+  })
 
   res.json({
-    user,
+    user: createdUser
   });
 });
 

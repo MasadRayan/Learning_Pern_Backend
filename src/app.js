@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import { prisma } from "./prisma.js";
 import jwt from "jsonwebtoken";
+import authMiddleware from "./middlewares/auth.js";
 const app = express();
 const port = 3000;
 
@@ -100,52 +101,13 @@ app.post("/auth/sign-in", async (req, res) => {
   });
 });
 
-app.get("/auth/me", async (req, res) => {
-  const authHeader = req.headers.authorization;
+app.get("/auth/me", authMiddleware ,async (req, res) => {
+  const user = req.user;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      status: "error",
-      message: "Unauthorized",
-    });
-  }
-
-  const accessToken  = authHeader.split(" ")[1];
-
-  const secretkey = process.env.JWT_SECRET;
-
-  jwt.verify(accessToken, secretkey, async(error, decoded) => {
-    if (error) {
-      return res.status(401).json({
-        status: "error",
-        message: "Invalid token",
-      });
-    }
-
-    const userId = decoded.sub;
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      omit: {
-        passwordHash: true,
-      }
-    })
-
-    if (!user) {
-      return res.status(404).json({
-        status: "error",
-        message: "User not found",
-      });
-    }
-
-    res.json({
-      status: "success",
-      message: "User info fetched successfully",
-      data: { user },
-    })
-
+  res.json({
+    status: "success",
+    message: "User info fetched successfully",
+    data: { user },
   })
 
 })

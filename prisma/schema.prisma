@@ -12,3 +12,35 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique @db.VarChar(255)
+  firstName    String   @db.VarChar(255)
+  lastName     String   @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
+  role         String   @default("USER") @db.VarChar(20)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userAddresses UserAddress[]
+}
+
+model UserAddress {
+  id           String   @id @default(uuid())
+  userId       String
+  fullName     String   @db.VarChar(255)
+  addressLabel String?  @db.VarChar(50)
+  addressLine1 String   @db.VarChar(255)
+  addressLine2 String?  @db.VarChar(255)
+  city         String   @db.VarChar(100)
+  state        String   @db.VarChar(100)
+  postalCode   String   @db.VarChar(20)
+  country      String   @db.VarChar(100)
+  phoneNumber  String   @db.VarChar(50)
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  User User @relation(fields: [userId], references: [id])
+}

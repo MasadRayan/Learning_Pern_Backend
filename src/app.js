@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { fi } from "zod/locales";
+import { fi, id } from "zod/locales";
 import dotenv from "dotenv";
 import { prisma } from "./prisma.js";
 const app = express();
@@ -61,6 +61,48 @@ app.get("/users", async (req, res) => {
     status: "success",
     message: "Users fetched successfully",
     data: { users },
+  });
+});
+
+app.get("/users/:id", async (req, res) => {
+  const userId = req.params.id;
+
+  const getUserSchema = z.object({
+    id: z.uuid(),
+  });
+
+  const {success, error } = getUserSchema.safeParse({
+    id: userId,
+  });
+
+  if (!success) {
+    return res.status(400).json({
+      status: "error",
+      message: "Validation failed",
+      data: z.flattenError(error),
+    });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    omit: {
+      passwordHash: true,
+    }
+  })
+
+  if (!user) {
+    return res.status(404).json({
+      status: "error",
+      message: "User not found",
+    });
+  }
+
+  res.json({
+    status: "success",
+    message: "User fetched successfully",
+    data: { user },
   });
 });
 

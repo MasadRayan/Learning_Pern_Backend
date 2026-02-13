@@ -65,44 +65,110 @@ app.get("/users", async (req, res) => {
 });
 
 app.patch("/users/:id", async (req, res) => {
-  const userId = req.params.id;
+  try {
+    const userId = req.params.id;
 
-  const userUpdateSchema = z.object({
-    firstName: z.string().min(3).optional(),
-    lastName: z.string().min(3).optional(),
-    email: z.email().optional(),
-  });
+    const userUpdateSchema = z.object({
+      id: z.uuid(),
+      firstName: z.string().min(3).optional(),
+      lastName: z.string().min(3).optional(),
+      email: z.email().optional(),
+    });
 
-  const { success, data, error } = userUpdateSchema.safeParse(req.body);
-
-  if (!success) {
-    return res
-      .status(400)
-      .json({ message: "Validation failed", data: z.flattenError(error) });
-  }
-
-  const user = {
-    firstName: data.firstName,
-    lastName: data.lastName,
-    email: data.email,
-  };
-
-  const updateUser = await prisma.user.update({
-    where: {
+    const { success, data, error } = userUpdateSchema.safeParse({
       id: userId,
-    },
-    data: user,
-    omit: {
-      passwordHash: true,
-    },
-  });
+      ...req.body,
+    });
 
-  res.json({
-    status: "success",
-    message: "User updated successfully",
-    data: { user: updateUser },
-  });
+    if (!success) {
+      return res
+        .status(400)
+        .json({ message: "Validation failed", data: z.flattenError(error) });
+    }
+
+    const user = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+    };
+
+    const updateUser = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: user,
+      omit: {
+        passwordHash: true,
+      },
+    });
+
+    res.json({
+      status: "success",
+      message: "User updated successfully",
+      data: { user: updateUser },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while updating the user",
+      data: "Can not update the user info",
+    });
+  }
 });
+
+app.delete("/users/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    const userdeleteSchema = z.object({
+      id: z.uuid(),
+    })
+
+    const { success, error } = userdeleteSchema.safeParse({
+      id: userId,
+    })
+
+    if (!success) {
+      return res.status(400).json({
+        status: "error",
+        message: "Validation failed",
+        data: z.flattenError(error),
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    const deleteUser = await prisma.user.delete({
+      where: {
+        id: userId,
+      },
+      omit : {
+        passwordHash: true,
+      }
+    })
+
+    res.json({
+      status: "success",
+      message: "User deleted successfully",
+      data: { user: deleteUser },
+    });
+
+  } catch (error) {
+    
+  }
+})
 
 app.get("/", async (req, res) => {
   res.send("Hello World!");

@@ -1,4 +1,4 @@
-export const adminMiddleware = (req, res, next) => {
+const adminMiddleware = (req, res, next) => {
 
     const user = req.user;
 
@@ -12,3 +12,4 @@ export const adminMiddleware = (req, res, next) => {
     }
 
 }
+export default adminMiddleware;

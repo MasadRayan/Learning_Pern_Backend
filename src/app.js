@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import productRoutes from "./routes/productRoute.js";
+import categoryRoutes from "./routes/categoryRoute.js";
 
 const app = express();
 const port = 3000;
@@ -12,6 +14,10 @@ app.use(cors());
 app.use("/auth", authRoutes)
 
 app.use("/users", userRoutes)
+
+app.use("/products", productRoutes)
+
+app.use("/categories", categoryRoutes)
 
 app.get("/", async (req, res) => {
   res.send("Hello World!");

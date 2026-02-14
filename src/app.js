@@ -17,7 +17,7 @@ app.use("/users", userRoutes)
 
 app.use("/products", productRoutes)
 
-app.use("/categories", categoryRoutes)
+app.use("/category", categoryRoutes)
 
 app.get("/", async (req, res) => {
   res.send("Hello World!");

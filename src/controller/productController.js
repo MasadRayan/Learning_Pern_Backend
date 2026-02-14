@@ -2,6 +2,7 @@ import { prisma } from "../database/prisma.js";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { spec } from "node:test/reporters";
 
 export const getAllProducts = async (req, res) => {
   const allProducts = await prisma.product.findMany({
@@ -123,17 +124,25 @@ export const updateProduct = async (req, res) => {
     slug: z.string().min(1).nullable().optional(),
     description: z.string().nullable().optional(),
     categoryId: z.uuid().optional(),
-    basePrice: z.number().min(1).optional(),
-    originalPrice: z.number().min(1).optional(),
-    stockQuantity: z.number().min(1).optional(),
+    basePrice: z.coerce.number().min(0.01).optional(), 
+    originalPrice: z.coerce.number().min(0.01).nullable().optional(), 
+    stockQuantity: z.coerce.number().int().min(0).optional(),
+    isFeatured: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+    specifications: z.array(z.object({
+      key: z.string().min(1),
+      value: z.string().min(1),
+    })).nullable().optional(),      
   })
 
   const {success, data, error} = productUpdateSchema.safeParse({ id: productId, ...req.body });
 
   if (!success) {
-    res.json({
+    console.log(error); // Debug: see what's failing
+    return res.status(400).json({ // Add return and proper status code
       status: "error",
       message: "Invalid request data",
+      errors: error.errors, // Include error details
     })
   }
 
@@ -144,7 +153,7 @@ export const updateProduct = async (req, res) => {
   })
 
   if (!existingProduct) {
-    res.json({
+    return res.status(404).json({ // Add return and proper status code
       status: "error",
       message: "Product not found",
     })
@@ -158,6 +167,9 @@ export const updateProduct = async (req, res) => {
     basePrice: data.basePrice,
     originalPrice: data.originalPrice,
     stockQuantity: data.stockQuantity,
+    isFeatured: data.isFeatured,
+    isActive: data.isActive,
+    specifications: data.specifications,
   }
 
   const updatedProduct = await prisma.product.update({
@@ -167,15 +179,52 @@ export const updateProduct = async (req, res) => {
     data: productPayload,
   })
 
-  res.json({
+  return res.json({
     status: "success",
     message: "Product updated successfully",
     data: { product: updatedProduct },
   })
-
-
-};
+}
 
 export const deleteProduct = async (req, res) => {
-  return res.send("Delete Product");
+  
+  const productId = req.params.id;
+
+  const productSchema = z.object({
+    id: z.uuid(),
+  })
+
+  const {success, data, error} = productSchema.safeParse({ id: productId });
+
+  if (!success) {
+    return res.status(400).json({
+      status: "error",
+      message: "Invalid product ID",
+    });
+  }
+
+  const existingProduct = await prisma.product.findUnique({
+    where: {
+      id: data.id,
+    }
+  })
+
+  if (!existingProduct) {
+    return res.status(404).json({
+      status: "error",
+      message: "Product not found",
+    });
+  }
+
+  const deletedProduct = await prisma.product.delete({
+    where: {
+      id: data.id,
+    }
+  })
+  
+  res.json({
+    status: "success",
+    message: "Product deleted successfully",
+    data: { product: deletedProduct },
+  })
 };

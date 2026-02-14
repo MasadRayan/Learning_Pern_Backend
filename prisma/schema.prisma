@@ -36,24 +36,28 @@ model User {
 // category model
 model Category {
   id          String   @id @default(uuid()) @db.Uuid
-  name        String   @unique @db.VarChar(255)
-  slug        String?  @unique @db.VarChar(255)
-  parentId    String?  @db.Uuid
-  description String?
-  imageUrl    String?  @db.VarChar(255)
+  name        String    @db.VarChar(255)
+  slug        String  @unique @db.VarChar(255)
+  description String
+  imageUrl    String  @db.VarChar(255)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  parentId    String?  @db.Uuid
+  parent      Category? @relation("CategoryToSubcategories", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories Category[] @relation("CategoryToSubcategories")
+
   products Product[]
+
 }
 
 // product model
 model Product {
   id             String   @id @default(uuid()) @db.Uuid()
   categoryId     String   @db.Uuid()
-  name           String   @db.VarChar(255)
-  slug           String?  @unique @db.VarChar(255)
-  description    String?
+  title          String   @db.VarChar(255)
+  slug           String  @unique @db.VarChar(255)
+  description    String
   basePrice      Decimal  @db.Decimal(10, 2)
   originalPrice  Decimal? @db.Decimal(10, 2)
   stockQuantity  Int      @default(0)

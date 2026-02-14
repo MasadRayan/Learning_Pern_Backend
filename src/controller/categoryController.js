@@ -60,9 +60,9 @@ export const createCategory = async (req, res) => {
     const categorySchema = z.object({
         name: z.string().min(1),
         description: z.string().optional(),
-        slug: z.string().min(1).optional(),
-        parentId: z.uuid().optional(),
-        imageUrl: z.url().optional(),
+        slug: z.string().min(1),
+        parentId: z.uuid().nullable().optional(),
+        imageUrl: z.url(),
     });
 
     const { success, data, error } = categorySchema.safeParse(req.body);
@@ -77,7 +77,7 @@ export const createCategory = async (req, res) => {
     const categoryPayload = {
         name: data.name,
         slug: data.slug,
-        parentId: data.parentId,
+        parentId: data.parentId || null,
         description: data.description,
         imageUrl: data.imageUrl,
     };

@@ -18,7 +18,41 @@ export const getAllCategories = async (req, res) => {
 }
 
 export const getACategory = async (req, res) => {
-    return res.send("A Category")
+    
+    const categoryId = req.params.id;
+
+    const categorySchema = z.object({
+        id: z.uuid(),
+    })
+
+    const { success, data, error } = categorySchema.safeParse({ id: categoryId });
+
+    if (!success) {
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid category ID",
+        });
+    }
+
+    const category = await prisma.category.findUnique({
+        where: {
+            id: data.id,
+        },
+    });
+
+    if (!category) {
+        return res.status(404).json({
+            status: "error",
+            message: "Category not found",
+        });
+    }
+    
+    return res.json({
+        status: "success",
+        message: "Category fetched successfully",
+        data: { category },
+    });
+
 }
 
 export const createCategory = async (req, res) => {
@@ -38,22 +72,6 @@ export const createCategory = async (req, res) => {
             message: "Invalid request data",
         });
     }
-
-    // check if parent category exists
-    // if (data.parentId) {
-    //     const parentCategoryExists = await prisma.category.findUnique({
-    //         where: {
-    //             id: data.parentId,
-    //         },
-    //     });
-
-    //     if (!parentCategoryExists) {
-    //         return res.status(400).json({
-    //             status: "error",
-    //             message: "Parent category does not exist",
-    //         });
-    //     }
-    // }
 
     const categoryPayload = {
         name: data.name,
@@ -75,9 +93,50 @@ export const createCategory = async (req, res) => {
 }
 
 export const updateCategory = async (req, res) => {
-    return res.send("Update Category")
+    
+    
 }
 
 export const deleteCategory = async (req, res) => {
-    return res.send("Delete Category")
+   
+    const categoryId = req.params.id;
+
+    const categorySchema = z.object({
+        id: z.uuid()
+    })
+
+    const {success, data, error} = categorySchema.safeParse({ id: categoryId });
+
+    if (!success) {
+        res.status(400).json({
+            status: "error",
+            message: "Invalid category ID",
+        });
+    }
+
+    const iscCategoryExists = await prisma.category.findUnique({
+        where: {
+            id: data.id,
+        }
+    })
+
+    if (!iscCategoryExists) {
+        return res.status(404).json({
+            status: "error",
+            message: "Category not found",
+        });
+    }
+
+    const deleteCategory = await prisma.category.delete({
+        where: {
+            id: data.id,
+        }
+    })
+
+    res.json({
+        status: "success",
+        message: "Category deleted successfully",
+        data: { category: deleteCategory },
+    })
+
 }

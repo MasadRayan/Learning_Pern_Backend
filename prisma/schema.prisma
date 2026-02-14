@@ -13,6 +13,7 @@ datasource db {
   provider = "postgresql"
 }
 
+// user model
 model User {
   id           String   @id @default(uuid())
   email        String   @unique @db.VarChar(255)
@@ -26,21 +27,38 @@ model User {
   // userAddresses UserAddress[]
 }
 
-// model UserAddress {
-//   id           String   @id @default(uuid())
-//   userId       String
-//   fullName     String   @db.VarChar(255)
-//   addressLabel String?  @db.VarChar(50)
-//   addressLine1 String   @db.VarChar(255)
-//   addressLine2 String?  @db.VarChar(255)
-//   city         String   @db.VarChar(100)
-//   state        String   @db.VarChar(100)
-//   postalCode   String   @db.VarChar(20)
-//   country      String   @db.VarChar(100)
-//   phoneNumber  String   @db.VarChar(50)
-//   isDefault    Boolean  @default(false)
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
+// category model
+model Category {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(255)
+  slug        String   @unique @db.VarChar(255)
+  parentId    String?  @db.Uuid
+  description String?
+  imageUrl    String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-//   User User @relation(fields: [userId], references: [id])
-// }
+  products Product[]
+}
+
+
+// product model
+model Product {
+  id              String   @id @default(uuid())
+  categoryId      String   @db.Uuid()
+  name            String   @db.VarChar(255)
+  slug            String   @unique @db.VarChar(255)
+  description     String?
+  basePrice       Decimal  @db.Decimal(10, 2)
+  originalPrice   Decimal? @db.Decimal(10, 2)
+  stockQuantity   Int      @default(0)
+  specifications  Json?
+  isFeatured      Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+

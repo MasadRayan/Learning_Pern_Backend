@@ -31,10 +31,10 @@ model User {
 model Category {
   id          String   @id @default(uuid()) @db.Uuid
   name        String   @unique @db.VarChar(255)
-  slug        String   @unique @db.VarChar(255)
+  slug        String?   @unique @db.VarChar(255)
   parentId    String?  @db.Uuid
   description String?
-  imageUrl    String   @db.VarChar(255)
+  imageUrl    String?  @db.VarChar(255)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -47,7 +47,7 @@ model Product {
   id              String   @id @default(uuid())
   categoryId      String   @db.Uuid()
   name            String   @db.VarChar(255)
-  slug            String   @unique @db.VarChar(255)
+  slug            String?   @unique @db.VarChar(255)
   description     String?
   basePrice       Decimal  @db.Decimal(10, 2)
   originalPrice   Decimal? @db.Decimal(10, 2)

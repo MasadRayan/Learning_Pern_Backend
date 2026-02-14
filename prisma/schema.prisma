@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -29,7 +23,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   role UserRole @default(CUSTOMER)
-
+  carts Cart[]
   // userAddresses UserAddress[]
 }
 
@@ -70,6 +64,8 @@ model Product {
   category Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   images   ProductImage[]
   variants ProductVariant[]
+  cartItems CartItem[]
+
 }
 
 // product image model
@@ -99,4 +95,53 @@ model ProductVariant {
   updatedAt       DateTime @updatedAt
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems CartItem[]
+}
+
+
+/** 
+Table carts {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  user_id UUID [ref: -  users.id]
+  session_id varchar(255)
+  created_at TIMESTAMP [not null, note: "Hashed Password"]
+  updated_at TIMESTAMP [not null , default: `NOW()`]
+}
+
+Table cart_items {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  cart_id uuid [not null, ref: > carts.id]
+  product_id uuid [not null, ref: > products.id]
+  variant_id uuid [ref: > product_variants.id]
+  quantity integer [not null, default: 1]
+  added_at timestamp [not null, default: `NOW()`]
+}
+
+*/
+
+// cart model
+model Cart {
+  id        String   @id @default(uuid()) @db.Uuid()
+  userId    String?  @db.Uuid()
+  sessionId String?   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+}
+
+// cart item model
+model CartItem {
+  id        String   @id @default(uuid()) @db.Uuid()
+  cartId    String   @db.Uuid()
+  productId String   @db.Uuid()
+  variantId String?  @db.Uuid()
+  quantity  Int      @default(1)
+  addedAt   DateTime @default(now())  
+
+  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
 }

@@ -18,7 +18,41 @@ export const getAllProducts = async (req, res) => {
 };
 
 export const getAProduct = async (req, res) => {
-  return res.send("A Product");
+  
+  const productId = req.params.id;
+
+  const productSchema = z.object({
+    id: z.uuid(),
+  })
+
+  const { success, data, error } = productSchema.safeParse({ id: productId });
+
+  if (!success) {
+    return res.status(400).json({
+      status: "error",
+      message: "Invalid product ID",
+    });
+  }
+  
+  const product = await prisma.product.findUnique({
+    where: {
+      id: data.id,
+    },
+  });
+
+  if (!product) {
+    return res.status(404).json({
+      status: "error",
+      message: "Product not found",
+    });
+  }
+
+  return res.json({
+    status: "success",
+    message: "Product fetched successfully",
+    data: { product },
+  })
+
 };
 
 export const createProduct = async (req, res) => {
@@ -80,7 +114,66 @@ export const createProduct = async (req, res) => {
 };
 
 export const updateProduct = async (req, res) => {
-  return res.send("Update Product");
+  
+  const productId = req.params.id;
+
+  const productUpdateSchema = z.object({
+    id: z.uuid(),
+    name: z.string().min(1).optional(),
+    slug: z.string().min(1).nullable().optional(),
+    description: z.string().nullable().optional(),
+    categoryId: z.uuid().optional(),
+    basePrice: z.number().min(1).optional(),
+    originalPrice: z.number().min(1).optional(),
+    stockQuantity: z.number().min(1).optional(),
+  })
+
+  const {success, data, error} = productUpdateSchema.safeParse({ id: productId, ...req.body });
+
+  if (!success) {
+    res.json({
+      status: "error",
+      message: "Invalid request data",
+    })
+  }
+
+  const existingProduct = await prisma.product.findUnique({
+    where: {
+      id: data.id,
+    }
+  })
+
+  if (!existingProduct) {
+    res.json({
+      status: "error",
+      message: "Product not found",
+    })
+  }
+
+  const productPayload = {
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    categoryId: data.categoryId,
+    basePrice: data.basePrice,
+    originalPrice: data.originalPrice,
+    stockQuantity: data.stockQuantity,
+  }
+
+  const updatedProduct = await prisma.product.update({
+    where: {
+      id: data.id
+    },
+    data: productPayload,
+  })
+
+  res.json({
+    status: "success",
+    message: "Product updated successfully",
+    data: { product: updatedProduct },
+  })
+
+
 };
 
 export const deleteProduct = async (req, res) => {

@@ -1,12 +1,8 @@
 import { Router } from "express";
-
+import { getAllImages } from "../../controller/product/index.js";
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.send("Hello from product image route!");
-});
-
-
+router.get("/", getAllImages);
 
 
 export default router;

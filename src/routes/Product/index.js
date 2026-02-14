@@ -4,8 +4,8 @@ import imageRoutes from "./imageRoute.js";
 import varientRoutes from "./varientRoute.js";
 const router = Router();
 
-router.use("/", productRoutes);
 router.use("/images", imageRoutes);
-router.use("/varients", varientRoutes);
+router.use("/variants", varientRoutes);
+router.use("/", productRoutes);
 
 export default router;

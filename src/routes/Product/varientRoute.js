@@ -1,9 +1,7 @@
 import { Router } from "express";
-
+import { getAllVariants } from "../../controller/product/index.js";
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.send("Hello from product image route!");
-});
+router.get("/", getAllVariants);
 
 export default router;

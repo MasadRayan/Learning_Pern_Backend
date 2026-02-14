@@ -5,7 +5,7 @@ import {
   updateProduct,
   deleteProduct,
   createProduct,
-} from "../../controller/productController.js";
+} from "../../controller/product/productController.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
 import adminMiddleware from "../../middleware/adminMiddleware.js";
 

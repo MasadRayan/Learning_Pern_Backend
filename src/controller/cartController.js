@@ -135,10 +135,72 @@ export const addItemtoCart = async (req, res) => {
 };
 
 export const updateCartItem = async (req, res) => {
-  res.json({
-    status: "success",
-    message: "Cart item updated successfully",
+  const userId = req.user.id;
+  const itemId = req.params.id;
+
+  const itemSchema = z.object({
+    id: z.uuid(),
+    quantity: z.number().min(1),
   });
+
+  const { success, data, error } = itemSchema.safeParse({
+    id: itemId,
+    ...req.body,
+  });
+
+  if (!success) {
+    return res.status(400).json({
+      status: "error",
+      message: "Validation failed",
+      data: z.flattenError(error),
+    });
+  }
+
+  // find the cart for the user
+  const cart = await prisma.cart.findFirst({
+    where: {
+      userId: userId,
+    },
+  });
+
+  if (!cart) {
+    return res.status(404).json({
+      status: "error",
+      message: "Cart not found",
+      data: null,
+    });
+  }
+
+  // also need to validate is the item exists in the cart
+  const item = await prisma.cartItem.findFirst({
+    where: {
+      id: itemId,
+      cartId: cart.id,
+    },
+  });
+
+  if (!item) {
+    return res.status(404).json({
+      status: "error",
+      message: "Item not found in cart",
+      data: null,
+    });
+  }
+
+  const updatedItem = await prisma.cartItem.update({
+    where: {
+      id: itemId,
+    },
+    data: {
+      quantity: data.quantity,
+    },
+  });
+
+  return res.json({
+    status: "success",
+    message: "Item quantity updated successfully",
+    data: { item: updatedItem },
+  })
 };
 
 export const removeItemFromCart = async (req, res) => {

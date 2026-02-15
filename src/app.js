@@ -4,6 +4,7 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/Product/index.js";
 import categoryRoutes from "./routes/categoryRoute.js";
+import cartRoute from "./routes/cartRoute.js";
 
 const app = express();
 const port = 3000;
@@ -11,13 +12,15 @@ const port = 3000;
 app.use(express.json());
 app.use(cors());
 
-app.use("/auth", authRoutes)
+app.use("/auth", authRoutes);
 
-app.use("/users", userRoutes)
+app.use("/users", userRoutes);
 
-app.use("/products", productRoutes)
+app.use("/products", productRoutes);
 
-app.use("/category", categoryRoutes)
+app.use("/category", categoryRoutes);
+
+app.use("/cart", cartRoute);
 
 app.get("/", async (req, res) => {
   res.send("Hello World!");

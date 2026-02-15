@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { getAllVariants, getVariantById, createVariant, deleteVariant, updateVariant } from "../../controller/product/index.js";
-import { authMiddleware } from "../../middleware/authMiddleware.js";
-import { adminMiddleware } from "../../middleware/adminMiddleware.js";
+import  authMiddleware  from "../../middleware/authMiddleware.js";
+import  adminMiddleware  from "../../middleware/adminMiddleware.js";
 const router = Router();
 
 router.get("/", getAllVariants);

@@ -1,10 +1,11 @@
 export const getCart = async (req, res) => {
     // I have user id
+    const userId = req.user.id; 
     // get cart from database
     // if cart not found, create a new cart for the user
     // return cart with its items and total price
 
-    const userId = req.user.id; 
+    console.log(userId);
 
     res.json({
         status: "success",

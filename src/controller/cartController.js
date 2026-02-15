@@ -42,7 +42,6 @@ export const addItemtoCart = async (req, res) => {
   const userId = req.user.id;
 
   const iremSchema = z.object({
-    cartId: z.uuid(),
     productId: z.uuid(),
     variantId: z.uuid().optional(),
     quantity: z.number().min(1),
@@ -58,18 +57,19 @@ export const addItemtoCart = async (req, res) => {
     });
   }
 
-  //   now check if the cart exists
-  const cart = await prisma.cart.findFirst({
+  //   find the cart for the user
+  let cart = await prisma.cart.findFirst({
     where: {
-      id: data.cartId,
+      userId: userId,
     },
   });
 
   if (!cart) {
-    return res.status(404).json({
-      status: "error",
-      message: "Cart not found",
-      data: null,
+    // if not exists, create a new cart
+    const newCart = await prisma.cart.create({
+      data: {
+        userId: userId,
+      },
     });
   }
 
@@ -116,10 +116,11 @@ export const addItemtoCart = async (req, res) => {
     }
   }
 
-//   now add the item to the cart
+  //   now add the item to the cart
+  const cartId = cart.id;
   const item = await prisma.cartItem.create({
     data: {
-      cartId: data.cartId,
+      cartId: cartId,
       productId: data.productId,
       variantId: data.variantId,
       quantity: data.quantity,
@@ -131,8 +132,6 @@ export const addItemtoCart = async (req, res) => {
     message: "Item added to cart successfully",
     data: { item },
   });
-
-
 };
 
 export const updateCartItem = async (req, res) => {

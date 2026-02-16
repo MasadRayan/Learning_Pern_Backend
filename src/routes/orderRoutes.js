@@ -6,11 +6,11 @@ import adminMiddleware from "../middleware/adminMiddleware.js";
 const router  = Router();
 
 
-router.get("/", getAllOrders);
-router.get("/:id", getOrderById);
-router.post("/", createOrder);
-router.patch("/:id", updateOrder);
-router.delete("/:id", deleteOrder);
+router.get("/", authMiddleware, getAllOrders);
+router.get("/:id", authMiddleware, getOrderById);
+router.post("/", authMiddleware, createOrder);
+router.patch("/:id", authMiddleware, updateOrder);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteOrder);
 
 
 export default router;

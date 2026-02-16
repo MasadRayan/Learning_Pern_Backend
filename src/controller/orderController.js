@@ -1,6 +1,21 @@
 import { z } from "zod";
 import { prisma } from "../database/prisma.js";
 
+// global function
+const calculateTotalAmount = (cartItems) => {
+  let total = 0;
+  for (const item of cartItems) {
+    let itemPrice = parseFloat(item.product.basePrice);
+    
+    if (item.variant) {
+      itemPrice += parseFloat(item.variant.priceAdjustment);
+    }
+    
+    total += itemPrice * item.quantity;
+  }
+  return total;
+};
+
 export const getAllOrders = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -68,19 +83,7 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-const calculateTotalAmount = (cartItems) => {
-  let total = 0;
-  for (const item of cartItems) {
-    let itemPrice = parseFloat(item.product.basePrice);
-    
-    if (item.variant) {
-      itemPrice += parseFloat(item.variant.priceAdjustment);
-    }
-    
-    total += itemPrice * item.quantity;
-  }
-  return total;
-};
+
 
 export const createOrder = async (req, res) => {
   try {

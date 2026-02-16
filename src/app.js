@@ -5,6 +5,7 @@ import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/Product/index.js";
 import categoryRoutes from "./routes/categoryRoute.js";
 import cartRoute from "./routes/cartRoute.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 const app = express();
 const port = 3000;
@@ -21,6 +22,8 @@ app.use("/products", productRoutes);
 app.use("/category", categoryRoutes);
 
 app.use("/cart", cartRoute);
+
+app.use("/orders", orderRoutes)
 
 // handle not found routes
 app.use((req, res, next) => {

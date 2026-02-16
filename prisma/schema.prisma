@@ -154,19 +154,7 @@ model Order {
   orderItems OrderItem[]
 }
 
-/**
- * Table order_items {
- * id UUID [pk, default: `uuid_generate_v4()`]
- * order_id uuid [not null, ref: > orders.id]
- * product_id uuid [ref: > products.id]
- * product_snapshot JSONB [not null, note: "Full snapshot of product data"]
- * variant_snapshot JSONB [not null, note: "Full snapshot of selected varient"]
- * quantity integer [not null]
- * price_at_purchase decimal(10, 2) [not null]
- * total_price decimal(10, 2) [not null]
- * }
- */
-
+// order item model
 model OrderItem {
   id              String  @id @default(uuid()) @db.Uuid()
   orderId         String  @db.Uuid()

@@ -236,11 +236,7 @@ export const createOrder = async (req, res) => {
 };
 
 export const updateOrder = async (req, res) => {
-  res.json({
-    status: "success",
-    message: "Order updated successfully",
-    data: null,
-  });
+  // have to add logc here
 };
 
 export const deleteOrder = async (req, res) => {

@@ -83,8 +83,6 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-
-
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user.id;

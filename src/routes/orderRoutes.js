@@ -9,7 +9,7 @@ const router  = Router();
 router.get("/", authMiddleware, getAllOrders);
 router.get("/:id", authMiddleware, getOrderById);
 router.post("/", authMiddleware, createOrder);
-router.patch("/:id", authMiddleware, updateOrder);
+router.patch("/:id", authMiddleware, adminMiddleware, updateOrder);
 router.delete("/:id", authMiddleware, adminMiddleware, deleteOrder);
 
 

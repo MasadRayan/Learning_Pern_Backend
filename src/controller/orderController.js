@@ -6,11 +6,11 @@ const calculateTotalAmount = (cartItems) => {
   let total = 0;
   for (const item of cartItems) {
     let itemPrice = parseFloat(item.product.basePrice);
-    
+
     if (item.variant) {
       itemPrice += parseFloat(item.variant.priceAdjustment);
     }
-    
+
     total += itemPrice * item.quantity;
   }
   return total;
@@ -55,11 +55,11 @@ export const getOrderById = async (req, res) => {
       },
       include: {
         orderItems: {
-            include : {
-                product: true
-            }
-        }
-      }
+          include: {
+            product: true,
+          },
+        },
+      },
     });
 
     if (!singleOrder) {
@@ -164,16 +164,20 @@ export const createOrder = async (req, res) => {
           quantity: item.quantity,
           priceAtPurchase: itemPrice,
           totalPrice: totalPrice, // Added: required field
-          productSnapshot: { // Added: required field
+          productSnapshot: {
+            // Added: required field
             title: item.product.title,
             description: item.product.description,
             basePrice: item.product.basePrice,
           },
-          variantSnapshot: item.variant ? { // Added: required field
-            variantName: item.variant.variantName,
-            variantValue: item.variant.variantValue,
-            priceAdjustment: item.variant.priceAdjustment,
-          } : null,
+          variantSnapshot: item.variant
+            ? {
+                // Added: required field
+                variantName: item.variant.variantName,
+                variantValue: item.variant.variantValue,
+                priceAdjustment: item.variant.priceAdjustment,
+              }
+            : null,
         };
       });
 
@@ -191,7 +195,8 @@ export const createOrder = async (req, res) => {
               id: item.variantId,
             },
             data: {
-              stockQuantity: { // Fixed: was stock
+              stockQuantity: {
+                // Fixed: was stock
                 decrement: item.quantity,
               },
             },
@@ -203,7 +208,8 @@ export const createOrder = async (req, res) => {
               id: item.productId,
             },
             data: {
-              stockQuantity: { // Fixed: was stock
+              stockQuantity: {
+                // Fixed: was stock
                 decrement: item.quantity,
               },
             },
@@ -212,7 +218,8 @@ export const createOrder = async (req, res) => {
       }
 
       // Clear cart
-      await txPrisma.cartItem.deleteMany({ // Fixed: was txPrisma.items
+      await txPrisma.cartItem.deleteMany({
+        // Fixed: was txPrisma.items
         where: {
           cartId: cart.id,
         },
@@ -237,6 +244,61 @@ export const createOrder = async (req, res) => {
 
 export const updateOrder = async (req, res) => {
   // have to add logc here
+  try {
+    const userId = req.user.id;
+    const orderId = req.params.id;
+
+    const isOrderExists = await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        userId: userId,
+      },
+    });
+
+    if (!isOrderExists) {
+      return res.status(404).json({
+        status: "error",
+        message: "Order not found",
+      });
+    }
+
+    const orderSchema = z.object({
+      status: z.enum(["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"]),
+      paymentStatus: z.enum(["PENDING", "PAID", "FAILED"]),
+    });
+
+    const { success, data, error } = orderSchema.safeParse(req.body);
+
+    if (!success) {
+      return res.status(400).json({
+        status: "error",
+        message: "Validation failed",
+        errors: error.errors,
+      });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: {
+        id: orderId,
+      },
+      data: {
+        status: data.status,
+        paymentStatus: data.paymentStatus,
+      },
+    });
+
+    return res.json({
+      status: "success",
+      message: "Order updated successfully",
+      data: { order: updatedOrder },
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
 };
 
 export const deleteOrder = async (req, res) => {
